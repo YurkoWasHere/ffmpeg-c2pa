@@ -19,6 +19,16 @@
  * License along with FFmpeg; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
+//EQTY: Dynamic function load
+#include <dlfcn.h>
+// Define the function pointer type
+typedef void (*c2pa_sign_func)(
+    const char *manifest_file,
+    const char *input_file,
+    const char *output_file,
+    const char *cert_file,
+    const char *key_file
+);
 
 #include "config.h"
 #include "config_components.h"
@@ -1373,7 +1383,7 @@ static int dict_copy_entry(AVDictionary **dst, const AVDictionary *src, const ch
 }
 
 static int dash_init(AVFormatContext *s)
-{
+{ 
     DASHContext *c = s->priv_data;
     int ret = 0, i;
     char *ptr;
@@ -2022,7 +2032,35 @@ static int dash_flush(AVFormatContext *s, int final, int stream)
 
             }
         }
+        //EQTY: Load module and sign dash
+        void *handle = dlopen("libffmpeg_custom.so", RTLD_LAZY);
+        if (!handle) {
+            fprintf(stderr, "Error loading Rust library: %s\n", dlerror());
+            return -1;
+        }
+        c2pa_sign_func c2pa_sign = (c2pa_sign_func) dlsym(handle, "c2pa_sign");
+
+        if (!c2pa_sign) {
+            fprintf(stderr, "Error finding function: %s\n", dlerror());
+            dlclose(handle);
+            return -1;
+        }
+        printf("filename: %s\n",s->url);
+        printf("c2pa key: %s\n",s->c2pa_key);
+        printf("c2pa cert: %s\n",s->c2pa_cert);
+        printf("c2pa manifest: %s\n",s->c2pa_manifest);
+
+        // Existing code that handles finalization of DASH
+        printf("first hello\n");
+        c2pa_sign(
+            s->c2pa_manifest,
+            s->url,
+            s->url,
+            s->c2pa_cert,
+            s->c2pa_key);
+
     }
+
     if (ret >= 0) {
         if (c->has_video && !final) {
             c->nr_of_streams_flushed++;
