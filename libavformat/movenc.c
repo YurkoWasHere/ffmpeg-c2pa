@@ -8323,7 +8323,7 @@ static int shift_data(AVFormatContext *s)
     return ff_format_shift_data(s, mov->reserved_header_pos, moov_size);
 }
 
-static int sign_c2pa_dash(AVFormatContext *s) {
+static int sign_c2pa_mp4(AVFormatContext *s) {
     if (s->c2pa_key!=NULL &&
     s->c2pa_cert!=NULL &&
     s->c2pa_manifest!=NULL) {
@@ -8362,7 +8362,8 @@ static int sign_c2pa_dash(AVFormatContext *s) {
             s->c2pa_key);
 
     }
-}
+    return 1;
+};
 static int mov_write_trailer(AVFormatContext *s)
 {
     MOVMuxContext *mov = s->priv_data;
@@ -8504,10 +8505,10 @@ static int mov_write_trailer(AVFormatContext *s)
         }
     }
 
-        //EQTY
-        //Make sure file is written
-	    avio_flush(s->pb);
-        static int sign_c2pa_mp4(AVFormatContext *s) {
+    //EQTY
+    //Make sure file is written
+    avio_flush(s->pb);
+    sign_c2pa_mp4(s);
     return res;
 }
 
