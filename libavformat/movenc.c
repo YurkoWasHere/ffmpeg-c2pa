@@ -8332,7 +8332,7 @@ static int sign_c2pa_dash(AVFormatContext *s) {
         if (!url) return -1;
        
         //Lazy load library
-        void *handle = dlopen("ibffmpeg_eqty_c2pa.so", RTLD_LAZY);
+        void *handle = dlopen("libffmpeg_eqty_c2pa.so", RTLD_LAZY);
         if (!handle) {
             fprintf(stderr, "Error loading Rust library: %s\n", dlerror());
             return -1;
